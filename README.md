@@ -23,4 +23,5 @@ On a linux machine, clone the repository, enter the main directory and type:
 
 ### Models
 
-A model is not included.
+A model is not included. Download pytorch_model.bin from https://ucdavis.box.com/v/soliloquy (password required),
+and place it in the paraphrase/quora_paws_model directory.
