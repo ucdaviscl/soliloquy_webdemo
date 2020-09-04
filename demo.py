@@ -12,6 +12,7 @@ STATICPATH = 'static'
 
 # The database name
 DBNAME = 'parapi.db'
+USERDBNAME = 'user.db'
 
 PAGESIZE = 3
 
@@ -24,7 +25,13 @@ if not os.path.exists(DBNAME):
     conn.execute("CREATE TABLE parapi (user TEXT, id INTEGER, pid INTEGER, filename TEXT, sentence TEXT, approved BOOL, PRIMARY KEY (user, id, pid, filename))")
     conn.commit()
     conn.close()
-
+    
+if not os.path.exists(USERDBNAME):
+    conn = sqlite3.connect(USERDBNAME)
+    conn.execute("CREATE TABLE user (username TEXT, password TEXT, PRIMARY KEY (username))")
+    conn.commit()
+    conn.close()
+    
 @bottle.route('/')
 def do_login():
     return bottle.template('login')
@@ -36,10 +43,22 @@ def do_authenticate():
     username = bottle.request.forms.get('username')
     password = bottle.request.forms.get('password')
     
-    bottle.response.status = 307
-    bottle.response.set_header('Location', '/list')
+    conn1 = sqlite3.connect(USERDBNAME)
+    c1 = conn1.cursor()
+    c1.execute('SELECT EXISTS(SELECT 1 FROM user WHERE username=? AND password=?)', (username, password, ))
+    a = c1.fetchone()
+    if a[0] == 1:
+        conn1.close()
     
-    return
+        bottle.response.status = 307
+        bottle.response.set_header('Location', '/list')
+    
+        return
+    
+    #bottle.response.status = 307
+    #bottle.response.set_header('Location', '/')
+    
+    return bottle.redirect('/')
     
 # Uploading a file will add each line of the file to the db
 @bottle.route('/upload', method='POST')
